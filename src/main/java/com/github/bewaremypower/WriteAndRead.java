@@ -1,6 +1,6 @@
 package com.github.bewaremypower;
 
-import com.github.bewaremypower.config.DefaultConfig;
+import com.github.bewaremypower.config.Config;
 import com.github.bewaremypower.util.ExceptionUtil;
 import org.apache.bookkeeper.client.BKException;
 import org.apache.bookkeeper.client.BookKeeper;
@@ -15,8 +15,9 @@ import java.util.Enumeration;
 
 public class WriteAndRead {
     public static void main(String[] args) throws InterruptedException {
-        try (BookKeeper bookKeeper = DefaultConfig.newBookKeeper()) {
-            try (LedgerHandle ledgerForWrite = DefaultConfig.createLedger(bookKeeper)) {
+        Config config = Config.newConfig();
+        try (BookKeeper bookKeeper = config.newBookKeeper()) {
+            try (LedgerHandle ledgerForWrite = config.createLedger(bookKeeper)) {
                 System.out.println("Create ledger: " + ledgerForWrite.getId());
                 // Read lines from stdin, each line is an entry written to the ledger
                 BufferedReader stdin = new BufferedReader(new InputStreamReader(System.in));
@@ -38,7 +39,7 @@ public class WriteAndRead {
                 }
 
                 // Print all confirmed entries
-                try (LedgerHandle ledgerForRead = DefaultConfig.openLedger(bookKeeper, ledgerForWrite.getId())) {
+                try (LedgerHandle ledgerForRead = config.openLedger(bookKeeper, ledgerForWrite.getId())) {
                     long lastAddConfirmed = ledgerForRead.getLastAddConfirmed();
                     if (lastAddConfirmed >= 0) {
                         System.out.println("Last add confirmed: " + lastAddConfirmed);

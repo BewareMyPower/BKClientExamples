@@ -1,6 +1,6 @@
 package com.github.bewaremypower;
 
-import com.github.bewaremypower.config.DefaultConfig;
+import com.github.bewaremypower.config.Config;
 import com.github.bewaremypower.util.ExceptionUtil;
 import org.apache.bookkeeper.client.BKException;
 import org.apache.bookkeeper.client.BookKeeper;
@@ -15,7 +15,7 @@ public class DeleteLedgers {
             return;
         }
 
-        final String zkServers = "10.209.243.104:2181";
+        Config config = Config.newConfig();
         final long minLedgerId = Long.parseLong(args[0]);
         final long maxLedgerId = Long.parseLong(args[1]);
 
@@ -24,8 +24,8 @@ public class DeleteLedgers {
             return;
         }
 
-        CountDownLatch deleteCallbackDone = new CountDownLatch((int)(maxLedgerId - minLedgerId + 1));
-        try (BookKeeper bookKeeper = DefaultConfig.newBookKeeper()) {
+        CountDownLatch deleteCallbackDone = new CountDownLatch((int) (maxLedgerId - minLedgerId + 1));
+        try (BookKeeper bookKeeper = config.newBookKeeper()) {
             for (long ledgerId = minLedgerId; ledgerId <= maxLedgerId; ledgerId++) {
                 bookKeeper.asyncDeleteLedger(ledgerId, (i, o) -> {
                     long id = (long) o;

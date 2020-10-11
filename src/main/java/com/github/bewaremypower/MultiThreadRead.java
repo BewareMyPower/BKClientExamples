@@ -1,6 +1,6 @@
 package com.github.bewaremypower;
 
-import com.github.bewaremypower.config.DefaultConfig;
+import com.github.bewaremypower.config.Config;
 import com.github.bewaremypower.util.ExceptionUtil;
 import org.apache.bookkeeper.client.BKException;
 import org.apache.bookkeeper.client.BookKeeper;
@@ -22,6 +22,7 @@ public class MultiThreadRead {
             return;
         }
 
+        Config config = Config.newConfig();
         final long ledgerId = Long.parseLong(args[0]);
         if (ledgerId < 0) {
             System.err.println("LedgerId (" + ledgerId + ") must be non-negative");
@@ -34,14 +35,14 @@ public class MultiThreadRead {
         }
         System.out.println("LedgerId: " + ledgerId + " ThreadNum: " + threadNum);
 
-        try (BookKeeper bookKeeper = DefaultConfig.newBookKeeper()) {
+        try (BookKeeper bookKeeper = config.newBookKeeper()) {
             final ExecutorService threadPool = Executors.newFixedThreadPool(threadNum);
             final CountDownLatch threadsDone = new CountDownLatch(threadNum);
 
             for (int i = 0; i < threadNum; i++) {
                 final String threadName = "Thread " + i;
                 threadPool.execute(() -> {
-                    try (LedgerHandle ledgerHandle = DefaultConfig.openLedger(bookKeeper, ledgerId)) {
+                    try (LedgerHandle ledgerHandle = config.openLedger(bookKeeper, ledgerId)) {
                         Enumeration<LedgerEntry> entries = ledgerHandle.readEntries(0, ledgerHandle.getLastAddConfirmed());
                         ByteArrayOutputStream stream = new ByteArrayOutputStream();
                         while (entries.hasMoreElements()) {
